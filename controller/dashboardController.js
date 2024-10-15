@@ -1,10 +1,10 @@
 const { User } = require("../models");
 const imagekit = require("../lib/imagekit");
-
-// Function for get all user data
+// Function for get all user data to render in page
 async function userPage(req, res) {
   try {
     const users = await User.findAll();
+    console.log(users.data);
     res.render("users/index", {
       users,
     });
@@ -14,10 +14,11 @@ async function userPage(req, res) {
     });
   }
 }
-
-async function createPage(req, res) {
+async function userPage(req, res) {
   try {
-    res.render("users/create.ejs", {
+    const users = await User.findAll();
+    console.log(users.data);
+    res.render("users/index", {
       users,
     });
   } catch (error) {
@@ -26,7 +27,25 @@ async function createPage(req, res) {
     });
   }
 }
-
+async function createUser(req, res) {
+  console.log(req.body);
+  const newUser = req.body;
+  try {
+    await User.create({ ...newUser });
+    res.redirect("/dashboard/admin/users");
+  } catch (error) {
+    res.redirect("/error");
+  }
+}
+async function createPage(req, res) {
+  try {
+    res.render("users/create");
+  } catch (error) {
+    res.render("error", {
+      message: error.message,
+    });
+  }
+}
 // Function for get user data by id
 async function getUserById(req, res) {
   const id = req.params.id;
@@ -56,7 +75,6 @@ async function getUserById(req, res) {
     });
   }
 }
-
 // Function for delete user by id
 async function deleteUserById(req, res) {
   const id = req.params.id;
@@ -70,9 +88,7 @@ async function deleteUserById(req, res) {
         data: null,
       });
     }
-
     await user.destroy();
-
     res.status(200).json({
       status: "Success",
       message: "Successfully delete user data",
@@ -89,7 +105,6 @@ async function deleteUserById(req, res) {
     });
   }
 }
-
 // Function for update user by id
 async function UpdateUserById(req, res) {
   const { firstName, lastName, age, phoneNumber } = req.body;
@@ -104,14 +119,11 @@ async function UpdateUserById(req, res) {
         data: null,
       });
     }
-
     user.firstName = firstName;
     user.lastName = lastName;
     user.age = age;
     user.phoneNumber = phoneNumber;
-
     await user.save();
-
     res.status(200).json({
       status: "Success",
       message: "Successfully update user data",
@@ -128,55 +140,6 @@ async function UpdateUserById(req, res) {
     });
   }
 }
-
-async function createUser(req, res) {
-  const file = req.file;
-  console.log(file);
-  // 1. processing file nya
-  const split = file.originalname.split(".");
-  // cth split => imam.pdf = ['imam','pdf']
-  const ext = split[split.length - 1];
-  const filename = split[0];
-
-  //2. upload image ke server
-  const uploadedImage = await imagekit.upload({
-    file: file.buffer,
-    fileName: `Profile-${filename}-${Date.now()}.${ext}`,
-  });
-
-  console.log(uploadedImage);
-
-  if (!uploadedImage) {
-    return res.status(400).json({
-      status: "Failed",
-      message: "Failed to add user data because file not define",
-      isSuccess: false,
-      data: null,
-    });
-  }
-
-  const newUser = req.body;
-
-  try {
-    await User.create({ ...newUser, photoProfile: uploadedImage.url });
-
-    res.status(200).json({
-      status: "Success",
-      message: "Successfully added user data",
-      isSuccess: true,
-      data: { ...newUser, photoProfile: uploadedImage.url },
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "Failed",
-      message: "Failed to add user data",
-      isSuccess: false,
-      data: null,
-      error: error.message,
-    });
-  }
-}
-
 module.exports = {
   userPage,
   createPage,

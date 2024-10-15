@@ -4,13 +4,16 @@ const usersRoute = require("./routes/usersRoute");
 const carsRoute = require("./routes/carsRoute");
 const sparepartsRoute = require("./routes/sparepartsRoute");
 const driverRoutes = require("./routes/driverRoute");
-const dashboardRoute = require("./routes/dashboardRoute");
+const dashboardRoutes = require("./routes/dashboardRoute");
 
 const app = express();
 const port = 3000;
 
 // Middleware: Reading json from body (client)
 app.use(express.json());
+
+// Middleware : agar dari view engine form kebaca (request body) nya
+app.use(express.urlencoded({ extended: false }));
 
 // middleware: LOGGING !! third party package
 app.use(morgan());
@@ -70,7 +73,7 @@ app.get("/", async (req, res) => {
 });
 
 // Dashboard route
-app.use("/dashboard/admin", dashboardRoute);
+app.use("/dashboard/admin", dashboardRoutes);
 
 // Routes
 app.use("/api/v1/users", usersRoute);
